@@ -1,0 +1,258 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>
+      Campus Consulta Notas
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Periodo Academico</ion-card-title>
+      <ion-card-subtitle>Campus Unimayor</ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content style="text-align: center;">
+      <ion-list style="text-align: center;">
+        <ion-item style="text-align: center;" color="light">
+          <ion-select [(ngModel)]="opcionSeleccionada" interface="action-sheet" (ionChange)="SelectPeriodo($event)">
+            <ion-select-option value="0">SELECCIONE UNA OPCION</ion-select-option>
+            @for (item of ListPeriodos; track item.anio) {
+              <ion-select-option value="{{item.anio}}-{{item.periodo}}">{{item.anio}} - Periodo: {{item.periodo}}</ion-select-option>
+            }
+          </ion-select>
+        </ion-item>
+      </ion-list>
+    </ion-card-content>
+  </ion-card>
+  @if (opcionSeleccionada !== '0') {
+    <ion-item>
+      <ion-segment value="notas" [(ngModel)]="selectedSegment">
+        <ion-segment-button value="notas" (click)="updateSelectedSegment('notas')">
+          <ion-label>Notas</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="horario" (click)="updateSelectedSegment('horario')">
+          <ion-label>Horario</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    </ion-item>
+    @if (selectedSegment === 'notas') {
+      @defer (on viewport) {
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>Componentes de Modulo</ion-card-title>
+            <ion-card-subtitle>Campus Unimayor</ion-card-subtitle>
+          </ion-card-header>
+          <ion-card-content>
+            <ion-list>
+              <ion-item>
+                Periodo: &#160;<b>{{opcionSeleccionada}}</b>
+              </ion-item>
+              @for (item of ListModulosAcad; track item.materia) {
+                <ion-item [button]="true" (click)="OpenComponentAcad(item)">
+                  <ion-icon name="pricetags-outline" slot="start"></ion-icon>
+                  <ion-label>{{item.materia}}</ion-label>
+                </ion-item>
+              }
+            </ion-list>
+          </ion-card-content>
+        </ion-card>
+      }
+      @placeholder {
+        <ion-title>Sin Componentes De Modulo</ion-title>
+      }
+      @loading(minimum 1s) {
+        <ion-card>
+          <ion-card-content>
+            <ion-list>
+              <ion-list-header>
+                <ion-skeleton-text [animated]="true" style="width: 80px"></ion-skeleton-text>
+              </ion-list-header>
+              <ion-item>
+                <ion-thumbnail slot="start">
+                  <ion-skeleton-text [animated]="true"></ion-skeleton-text>
+                </ion-thumbnail>
+                <ion-label>
+                  <h3>
+                    <ion-skeleton-text [animated]="true" style="width: 80%;"></ion-skeleton-text>
+                  </h3>
+                  <p>
+                    <ion-skeleton-text [animated]="true" style="width: 60%;"></ion-skeleton-text>
+                  </p>
+                  <p>
+                    <ion-skeleton-text [animated]="true" style="width: 30%;"></ion-skeleton-text>
+                  </p>
+                </ion-label>
+              </ion-item>
+            </ion-list>
+          </ion-card-content>
+        </ion-card>
+      }
+
+
+      <!-- Modal para visualizar detalle del -->
+      <ion-modal [isOpen]="isViewComponentAcad">
+        <ng-template>
+          <ion-header>
+            <ion-toolbar>
+              <ion-buttons slot="start">
+                <ion-button (click)="BackModalComponentAcad()" [strong]="true"><ion-icon name="chevron-back-outline"></ion-icon>&#160;Volver</ion-button>
+              </ion-buttons>
+              <ion-title>Componente Modulo</ion-title>
+            </ion-toolbar>
+          </ion-header>
+          <ion-content class="ion-padding">
+            <ion-refresher slot="fixed" (ionRefresh)="Refresh($event)">
+              <ion-refresher-content></ion-refresher-content>
+            </ion-refresher>
+            @if(ComponentAcadSelected.apreciacion === 'APROBADA'){
+              <ion-card style="background-color: #9dd6a2;">
+                <ion-card-content>
+                  <ion-card-title>{{ComponentAcadSelected.materia}}</ion-card-title>
+                  <ion-card-subtitle>Componente Módulo</ion-card-subtitle>
+                  <!-- <ion-label>Creditos Materia : 3</ion-label> -->
+                </ion-card-content>
+              </ion-card>
+            }@else {
+              <ion-card>
+                <ion-card-content>
+                  <ion-card-title>{{ComponentAcadSelected.materia}}</ion-card-title>
+                  <ion-card-subtitle>Componente Módulo</ion-card-subtitle>
+                  <!-- <ion-label>Creditos Materia : 3</ion-label> -->
+                </ion-card-content>
+              </ion-card>
+            }
+
+            @if(ComponentAcadSelected.apreciacion === 'APROBADA'){
+              <ion-card style="background-color: #9dd6a2;">
+                <ion-card-content style="text-align: center;">
+                    <ion-label><strong>Apreciación : {{ComponentAcadSelected.apreciacion}}</strong></ion-label>
+                    <ion-icon name="checkmark-done" style="font-size: 22px;"></ion-icon>
+                </ion-card-content>
+              </ion-card>
+            }@else {
+              <ion-card>
+                <ion-card-content style="text-align: center;">
+                    <ion-label><strong>Apreciación : {{ComponentAcadSelected.apreciacion}}</strong></ion-label>
+                </ion-card-content>
+              </ion-card>
+            }
+
+            <ion-card>
+              <ion-card-content style="text-align: center;">
+                @if (ComponentAcadSelected.faltas === 0) {
+                  <ion-label><strong>Faltas: {{ComponentAcadSelected.faltas}}</strong></ion-label>&#160;&#160;<ion-icon name="thumbs-up"></ion-icon>
+                }@else {
+                  <ion-label><strong>Faltas: {{ComponentAcadSelected.faltas}}</strong></ion-label>&#160;&#160;<ion-icon name="thumbs-down"></ion-icon>
+                }
+              </ion-card-content>
+            </ion-card>
+
+            <ion-card>
+              <ion-card-header>
+                <ion-card-title style="font-size: 19px;"><ion-icon name="receipt"></ion-icon> Notas</ion-card-title>
+              </ion-card-header>
+              <ion-card-content>
+                <ion-list>
+
+                  <ion-item>
+                    <ion-icon name="reader-outline"></ion-icon>&#160;
+                    <ion-label>Nota 1</ion-label>
+                    @if (ComponentAcadSelected.nota1 === 0) {
+                      <ion-note><strong>{{ComponentAcadSelected.nota1}}</strong></ion-note>
+                    }@else {
+                      <ion-note color="black"><strong>{{ComponentAcadSelected.nota1}}</strong></ion-note>
+                    }
+                  </ion-item>
+
+                  <ion-item>
+                    <ion-icon name="reader-outline"></ion-icon>&#160;
+                    <ion-label>Nota 2</ion-label>
+                    @if (ComponentAcadSelected.nota2 === 0) {
+                      <ion-note><strong>{{ComponentAcadSelected.nota2}}</strong></ion-note>
+                    }@else {
+                      <ion-note color="black"><strong>{{ComponentAcadSelected.nota2}}</strong></ion-note>
+                    }
+                  </ion-item>
+                  <ion-item>
+                    <ion-icon name="reader-outline"></ion-icon>&#160;
+                    <ion-label>Nota 3</ion-label>
+                    @if (ComponentAcadSelected.nota3 === 0) {
+                      <ion-note><strong>{{ComponentAcadSelected.nota3}}</strong></ion-note>
+                    }@else {
+                      <ion-note color="black"><strong>{{ComponentAcadSelected.nota3}}</strong></ion-note>
+                    }
+                  </ion-item>
+                </ion-list>
+              </ion-card-content>
+            </ion-card>
+
+            <ion-card>
+              <ion-card-content style="text-align: center;">
+                <ion-card-title style="font-size: 20px;"><ion-icon name="star"></ion-icon> Definitiva : {{ComponentAcadSelected.definitiva}}</ion-card-title>
+              </ion-card-content>
+            </ion-card>
+
+          </ion-content>
+        </ng-template>
+      </ion-modal>
+      <!-- FIN Modal para visualizar detalle del -->
+    }
+    @if (selectedSegment === 'horario') {
+      <br>
+      @defer (on viewport) {
+        <ion-list>
+          <ion-item>
+            <full-calendar [options]="calendarOptions" style="width: 100%;"></full-calendar>
+          </ion-item>
+        </ion-list>
+      }
+      @placeholder {
+        <ion-list>
+          <ion-item>
+            <ion-title>Sin Horario</ion-title>
+          </ion-item>
+        </ion-list>
+      }
+      @loading(minimum 1s) {
+        <ion-card>
+          <ion-card-content>
+            <ion-list>
+              <ion-list-header>
+                <ion-skeleton-text [animated]="true" style="width: 80px"></ion-skeleton-text>
+              </ion-list-header>
+              <ion-item>
+                <ion-thumbnail slot="start">
+                  <ion-skeleton-text [animated]="true"></ion-skeleton-text>
+                </ion-thumbnail>
+                <ion-label>
+                  <h3>
+                    <ion-skeleton-text [animated]="true" style="width: 80%;"></ion-skeleton-text>
+                  </h3>
+                  <p>
+                    <ion-skeleton-text [animated]="true" style="width: 60%;"></ion-skeleton-text>
+                  </p>
+                  <p>
+                    <ion-skeleton-text [animated]="true" style="width: 30%;"></ion-skeleton-text>
+                  </p>
+                </ion-label>
+              </ion-item>
+            </ion-list>
+          </ion-card-content>
+        </ion-card>
+      }
+      <br>
+    }
+
+  }@else {
+    <ion-card>
+      <ion-card-content>
+        <ion-title>No existen componentes matriculados en el periodo seleccionado.</ion-title>
+      </ion-card-content>
+    </ion-card>
+  }
+
+
+</ion-content>

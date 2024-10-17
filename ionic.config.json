@@ -1,0 +1,7 @@
+{
+  "name": "CampusConsultaNotasMobile",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}
